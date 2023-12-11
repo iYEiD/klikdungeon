@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseManager {
     private static Connection connection;
@@ -158,6 +160,33 @@ public class DatabaseManager {
         }
 
         return monster;
+    }
+
+    public List<Player> getTop10Players() {
+        List<Player> topPlayers = new ArrayList<>();
+        String query = "SELECT * FROM player ORDER BY level DESC LIMIT 10";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                int playerId = resultSet.getInt("idplayer");
+                String playerName = resultSet.getString("name");
+                int playerLevel = resultSet.getInt("level");
+                int playerGold = resultSet.getInt("gold");
+
+                Player player = new Player(playerId, playerName, playerLevel, playerGold);
+                topPlayers.add(player);
+            }
+
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return topPlayers;
     }
 
 }

@@ -26,7 +26,7 @@ import javafx.stage.Stage;
 import javafx.geometry.Pos;
 
 public class App extends Application {
-    private DatabaseManager db = new DatabaseManager();
+    static private DatabaseManager db = new DatabaseManager();
     final String soundTrack = "C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\soundtrack.wav";
 
     @Override
@@ -142,7 +142,7 @@ public class App extends Application {
         borderPane.setTop(menuBar);
         //
         // Monster Stuff
-        final Monster monster = new Monster();
+        final Monster monster = new Monster(player, db);
 
         VBox monsterBox = new VBox();
         monsterBox.setAlignment(Pos.CENTER);
@@ -164,9 +164,9 @@ public class App extends Application {
             if (monster.getMonsterHealth() <= 0) {
                 System.out.println("Monster has been slain!");
                 player.setPlayerLevel(player.getPlayerLevel() + 1);
-                int goldEarned = player.getPlayerLevel() * (int) (Math.random() * 3);
+                int goldEarned = player.getPlayerLevel() * (int) (Math.random() * 3) + 1;
                 player.setGold(player.getGold() + goldEarned);
-                monster.playDeathSound();
+                monster.playDeathSound(monster);
                 db.saveGame(player);
                 playGame(root, player);
             }

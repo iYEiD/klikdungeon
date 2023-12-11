@@ -15,49 +15,28 @@ public class Monster {
     private String dialogue;
     private int monsterHealth;
     private String imagePath;
+    private String deathPath;
 
-    public Monster() {
-        // random id wquery get lba2ye
-        int monsterID = (int) (Math.random() * 3) + 1;
-        String monsterName = "";
-        String description = "";
-        int monsterHealth = 0;
-        String imagePath = "";
-
-        switch (monsterID) {
-            case 1:
-                monsterName = "Allawi";
-                description = "FOOL!";
-                monsterHealth = 100;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster.png";
-                break;
-            case 2:
-                monsterName = "Budi";
-                description = "I WILL DESTROY YOU";
-                monsterHealth = 50;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster2.png";
-                break;
-            case 3:
-                monsterName = "Caca";
-                description = "WEAK HUMAN!";
-                monsterHealth = 75;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster3.png";
-                break;
-        }
+    public Monster(Player player, DatabaseManager dbManager) {
+        int monsterID = (int) (Math.random() * 5) + 1;
+        Monster generatedMonster = dbManager.getMonster(monsterID);
         this.monsterID = monsterID;
-        this.monsterName = monsterName;
-        this.dialogue = description;
-        this.monsterHealth = monsterHealth;
-        this.imagePath = imagePath;
+        this.monsterName = generatedMonster.getMonsterName();
+        this.dialogue = generatedMonster.getDialogue();
+        this.monsterHealth = generatedMonster.getMonsterHealth() + player.getPlayerLevel() * 13;
+        this.imagePath = generatedMonster.getImagePath();
+        this.deathPath = generatedMonster.getDeathPath();
 
     }
 
-    public Monster(int monsterID, String monsterName, String description, int monsterHealth, String imagePath) {
+    public Monster(int monsterID, String monsterName, String dialogue, int monsterHealth, String imagePath,
+            String deathPath) {
         this.monsterID = monsterID;
         this.monsterName = monsterName;
-        this.dialogue = description;
+        this.dialogue = dialogue;
         this.monsterHealth = monsterHealth;
         this.imagePath = imagePath;
+        this.deathPath = deathPath;
     }
 
     public int getMonsterID() {
@@ -100,11 +79,19 @@ public class Monster {
         this.imagePath = imagePath;
     }
 
-    public void playDeathSound() {
+    public String getDeathPath() {
+        return deathPath;
+    }
+
+    public void setDeathPath(String deathPath) {
+        this.deathPath = deathPath;
+    }
+
+    public void playDeathSound(Monster monster) {
         Thread soundThread = new Thread(() -> {
             try {
                 AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(
-                        "C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\death.wav")
+                        monster.getDeathPath())
                         .getAbsoluteFile());
                 Clip clip = AudioSystem.getClip();
                 clip.open(audioInputStream);
@@ -123,35 +110,4 @@ public class Monster {
         soundThread.start();
     }
 
-    public Monster generateMonster() {
-        // random id wquery get lba2ye
-        int monsterID = (int) (Math.random() * 3) + 1;
-        String monsterName = "";
-        String description = "";
-        int monsterHealth = 0;
-        String imagePath = "";
-
-        switch (monsterID) {
-            case 1:
-                monsterName = "Allawi";
-                description = "Fool !!!!!!!!";
-                monsterHealth = 100;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster.png";
-                break;
-            case 2:
-                monsterName = "Budi";
-                description = "You're back ?!";
-                monsterHealth = 50;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster.png";
-                break;
-            case 3:
-                monsterName = "Caca";
-                description = "I will DESTROY YOU";
-                monsterHealth = 75;
-                imagePath = "File:C:\\Users\\YEiD\\Documents\\Uni3.1\\OOP2\\Project\\KlikDungeon\\src\\main\\java\\app\\klikdungeon\\assets\\monster.png";
-                break;
-        }
-
-        return new Monster(monsterID, monsterName, description, monsterHealth, imagePath);
-    }
 }

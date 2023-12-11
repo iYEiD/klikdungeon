@@ -130,48 +130,34 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
-    // public int getScore(String playerName, String playerPassword) {
-    // int score = -1;
-    // if (authenticate(playerName, playerPassword)) {
-    // String query = "SELECT score FROM player WHERE playername = ?";
 
-    // try {
-    // PreparedStatement preparedStatement = connection.prepareStatement(query);
-    // preparedStatement.setString(1, playerName);
+    public Monster getMonster(int monsterID) {
+        Monster monster = null;
+        String query = "SELECT * FROM monster WHERE idmonster = ?";
 
-    // ResultSet resultSet = preparedStatement.executeQuery();
-    // if (resultSet.next()) {
-    // score = resultSet.getInt("score");
-    // }
-    // resultSet.close();
-    // preparedStatement.close();
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // }
-    // }
-    // return score;
-    // }
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, monsterID);
 
-    // public void updateScore(String playerName, String playerPassword, int
-    // newScore) {
-    // if (authenticate(playerName, playerPassword)) {
-    // String updateQuery = "UPDATE player SET score = ? WHERE playername = ?";
-    // try {
-    // PreparedStatement preparedStatement =
-    // connection.prepareStatement(updateQuery);
-    // preparedStatement.setInt(1, newScore);
-    // preparedStatement.setString(2, playerName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String dialogue = resultSet.getString("dialogue");
+                int health = resultSet.getInt("health");
+                String imagePath = resultSet.getString("imagepath");
 
-    // int rowsAffected = preparedStatement.executeUpdate();
-    // if (rowsAffected > 0) {
-    // System.out.println("Score updated successfully for player: " + playerName);
-    // } else {
-    // System.out.println("Failed to update the score for player: " + playerName);
-    // }
-    // preparedStatement.close();
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // }
-    // }
-    // }
+                String deathPath = resultSet.getString("deathpath");
+
+                monster = new Monster(monsterID, name, dialogue, health, imagePath, deathPath);
+            }
+
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return monster;
+    }
+
 }

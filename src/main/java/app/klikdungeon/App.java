@@ -24,6 +24,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class App extends Application {
     static private DatabaseManager db = new DatabaseManager();
@@ -128,22 +133,48 @@ public class App extends Application {
         // menu
         MenuBar menuBar = new MenuBar();
         menuBar.setStyle("-fx-background-color: black;");
-        Menu leaderboard = new Menu("Leaderboard");
-        leaderboard.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
-        MenuItem topKills = new MenuItem("Kills");
-        MenuItem topGold = new MenuItem("Gold");
-        MenuItem topLevel = new MenuItem("Level");
-        leaderboard.getItems().addAll(topKills, topGold, topLevel);
+        Menu leaderboardMenu = new Menu("Leaderboard");
+        leaderboardMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
+        MenuItem leaderboardItem = new MenuItem("View");
+        leaderboardItem.setOnAction(e -> {
+            System.out.println("Leaderboard clicked!");
+            displayLeaderboard(root, player);
+        });
         Menu inventoryMenu = new Menu("Inventory");
+        MenuItem inventoryItem = new MenuItem("View");
         inventoryMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
+        inventoryItem.setOnAction(e -> {
+            System.out.println("Inventory clicked!");
+            // displayInventory(root, player);
+        });
+
         Menu shopMenu = new Menu("Shop");
+        MenuItem shopItem = new MenuItem("View");
         shopMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
-        menuBar.getMenus().addAll(leaderboard, inventoryMenu, shopMenu);
+        shopItem.setOnAction(e -> {
+            System.out.println("Shop clicked!");
+            // displayShop(root, player);
+        });
+
+        Menu gameMenu = new Menu("Game");
+        MenuItem gameItem = new MenuItem("Sign Out");
+        gameMenu.setStyle(
+                "-fx-background-color: #8B0000;-fx-font-style: italic; -fx-font-weight: bold; -fx-text-fill: black;");
+        gameItem.setOnAction(e -> {
+            System.out.println("Sign Out clicked!");
+            startUp(root);
+        });
+        gameMenu.getItems().add(gameItem);
+        leaderboardMenu.getItems().add(leaderboardItem);
+        inventoryMenu.getItems().add(inventoryItem);
+        shopMenu.getItems().add(shopItem);
+
+        menuBar.getMenus().addAll(leaderboardMenu, inventoryMenu, shopMenu, gameMenu);
         borderPane.setTop(menuBar);
+
         //
         // Monster Stuff
         final Monster monster = new Monster(player, db);
-
         VBox monsterBox = new VBox();
         monsterBox.setAlignment(Pos.CENTER);
 
@@ -231,6 +262,64 @@ public class App extends Application {
         loginBox.getChildren().addAll(label, username, password, registerButton);
         root.getChildren().addAll(background, loginBox);
 
+    }
+
+    public void displayLeaderboard(StackPane root, Player player) {
+        root.getChildren().clear();
+        Pane background = new Pane();
+        Image image = new Image(
+                "https://media.thenerdstash.com/wp-content/uploads/2023/08/Best-Solo-Classes-in-Dark-and-Darker.jpg");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(700);
+        imageView.setFitWidth(900);
+        background.getChildren().add(imageView);
+        BorderPane borderPane = new BorderPane();
+        MenuBar menuBar = new MenuBar();
+        menuBar.setStyle("-fx-background-color: black;");
+        Menu game = new Menu("Leaderboard");
+        game.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
+        game.setOnAction(e -> {
+            System.out.println("Leaderboard clicked!");
+            playGame(root, player);
+        });
+        Menu inventoryMenu = new Menu("Inventory");
+        inventoryMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
+        Menu shopMenu = new Menu("Shop");
+        shopMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
+        menuBar.getMenus().addAll(game, inventoryMenu, shopMenu);
+        borderPane.setTop(menuBar);
+        VBox leaderboardBox = new VBox();
+        leaderboardBox.setAlignment(Pos.CENTER);
+        Label leaderboardLabel = new Label("Top 10 Kills");
+        leaderboardLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #CCCC00; -fx-font-style: italic;");
+        leaderboardBox.getChildren().add(leaderboardLabel);
+
+        TableView<Player> tableView = new TableView<>();
+        TableColumn<Player, Integer> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        TableColumn<Player, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        TableColumn<Player, Integer> totalLevelColumn = new TableColumn<>("Total Level");
+        totalLevelColumn.setCellValueFactory(new PropertyValueFactory<>("totalLevel"));
+        TableColumn<Player, Integer> goldColumn = new TableColumn<>("Gold");
+        goldColumn.setCellValueFactory(new PropertyValueFactory<>("gold"));
+
+        tableView.getColumns().addAll(idColumn, nameColumn, totalLevelColumn, goldColumn);
+
+        // Set the columns to the same size
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        idColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        nameColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        totalLevelColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        goldColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+
+        ObservableList<Player> players = FXCollections.observableArrayList();
+        // Add your 10 players to the players list here
+
+        tableView.setItems(players);
+        leaderboardBox.getChildren().add(tableView);
+        borderPane.setCenter(leaderboardBox);
+        root.getChildren().addAll(background, borderPane);
     }
 
     public static void main(String[] args) {

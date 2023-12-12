@@ -162,9 +162,9 @@ public class DatabaseManager {
         return monster;
     }
 
-    public List<Player> getTop10Players() {
+    public List<Player> getTopPlayers() {
         List<Player> topPlayers = new ArrayList<>();
-        String query = "SELECT * FROM player ORDER BY level DESC LIMIT 10";
+        String query = "SELECT * FROM player ORDER BY level DESC LIMIT 15";
 
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -189,4 +189,30 @@ public class DatabaseManager {
         return topPlayers;
     }
 
+    public List<Weapon> getWeapons() {
+        List<Weapon> weapons = new ArrayList<>();
+        String query = "SELECT * FROM weapon";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                int weaponId = resultSet.getInt("idweapon");
+                String weaponName = resultSet.getString("name");
+                int weaponDamage = resultSet.getInt("damage");
+                int weaponCost = resultSet.getInt("cost");
+
+                Weapon weapon = new Weapon(weaponId, weaponName, weaponDamage, weaponCost);
+                weapons.add(weapon);
+            }
+
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return weapons;
+    }
 }

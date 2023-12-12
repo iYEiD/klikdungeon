@@ -2,7 +2,7 @@ package app.klikdungeon;
 
 import java.io.File;
 import java.io.IOException;
-import javafx.scene.layout.StackPane;
+
 import javafx.scene.paint.Color;
 
 import javax.sound.sampled.AudioInputStream;
@@ -10,6 +10,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -19,6 +20,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -32,6 +34,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 
 public class App extends Application {
     static private DatabaseManager db = new DatabaseManager();
@@ -156,18 +160,23 @@ public class App extends Application {
         shopMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
         shopItem.setOnAction(e -> {
             System.out.println("Shop clicked!");
-            // displayShop(root, player);
+            displayShop(root, player, menuBar);
         });
 
         Menu gameMenu = new Menu("Game");
         MenuItem gameItem = new MenuItem("Sign Out");
+        MenuItem gameItem2 = new MenuItem("Fight");
         gameMenu.setStyle(
                 "-fx-background-color: #8B0000;-fx-font-style: italic; -fx-font-weight: bold; -fx-text-fill: black;");
         gameItem.setOnAction(e -> {
             System.out.println("Sign Out clicked!");
             startUp(root);
         });
-        gameMenu.getItems().add(gameItem);
+        gameItem2.setOnAction(e -> {
+            System.out.println("Fight clicked!");
+            playGame(root, player);
+        });
+        gameMenu.getItems().addAll(gameItem, gameItem2);
         leaderboardMenu.getItems().add(leaderboardItem);
         inventoryMenu.getItems().add(inventoryItem);
         shopMenu.getItems().add(shopItem);
@@ -306,7 +315,7 @@ public class App extends Application {
         goldColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
 
         ObservableList<Player> players = FXCollections.observableArrayList();
-        players.addAll(db.getTop10Players());
+        players.addAll(db.getTopPlayers());
 
         tableView.setItems(players);
         leaderboardBox.getChildren().add(tableView);
@@ -314,6 +323,115 @@ public class App extends Application {
         root.getChildren().addAll(background, borderPane);
 
     }
+
+    public void displayShop(StackPane root, Player player, MenuBar menuBar) {
+        root.getChildren().clear();
+        Pane background = new Pane();
+        Image image = new Image("https://i.pinimg.com/736x/cd/01/ca/cd01cafef69c16afe07f05c4a127e776.jpg");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(700);
+        imageView.setFitWidth(900);
+        background.getChildren().add(imageView);
+        BorderPane borderPane = new BorderPane();
+        borderPane.setTop(menuBar);
+
+        VBox shopBox = new VBox();
+        shopBox.setAlignment(Pos.CENTER);
+        Label shopLabel = new Label("Dungeon Shop");
+        shopLabel.setStyle(
+                "-fx-font-size: 25px; -fx-text-fill: #CCCC00; -fx-font-weight: bold;");
+        shopBox.getChildren().add(shopLabel);
+
+        TableView<Weapon> tableView = new TableView<>();
+        TableColumn<Weapon, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("weaponName"));
+        TableColumn<Weapon, Integer> damageColumn = new TableColumn<>("Damage");
+        damageColumn.setCellValueFactory(new PropertyValueFactory<>("weaponDamage"));
+        TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost");
+        costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
+        TableColumn<Weapon, Integer> purchaseColumn = new TableColumn<>("Action");
+        purchaseColumn.setCellValueFactory(new PropertyValueFactory<>("gold"));
+
+        tableView.getColumns().addAll(nameColumn, damageColumn, costColumn, purchaseColumn);
+        // Set the columns to the same size
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        nameColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        damageColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        costColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        purchaseColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+
+        ObservableList<Weapon> weapons = FXCollections.observableArrayList();
+        weapons.addAll(db.getWeapons());
+
+        tableView.setItems(weapons);
+        shopBox.getChildren().add(tableView);
+        borderPane.setCenter(shopBox);
+        root.getChildren().addAll(background, borderPane);
+    }
+    //
+
+    // }
+    // private void displayShop(StackPane root, Player player, MenuBar menuBar) {
+    // root.getChildren().clear();
+    // Pane background = new Pane();
+    // Image image = new
+    // Image("https://www.gamepur.com/wp-content/uploads/2022/12/Dark-and-Darker-loot.jpg?w=1200");
+    // ImageView imageView = new ImageView(image);
+    // imageView.setFitHeight(700);
+    // imageView.setFitWidth(900);
+    // background.getChildren().add(imageView);
+    // BorderPane borderPane = new BorderPane();
+    // borderPane.setTop(menuBar);
+
+    // GridPane gridPane = new GridPane();
+    // gridPane.setAlignment(Pos.CENTER);
+    // gridPane.setHgap(10);
+    // gridPane.setVgap(10);
+
+    // TableView<Weapon> tableView = new TableView<>();
+    // TableColumn<Weapon, String> nameColumn = new TableColumn<>("Name");
+    // nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+    // TableColumn<Weapon, Integer> damageColumn = new TableColumn<>("Damage");
+    // damageColumn.setCellValueFactory(new PropertyValueFactory<>("damage"));
+    // TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost");
+    // costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
+    // TableColumn<Weapon, Weapon> purchaseColumn = new TableColumn<>("Purchase");
+    // purchaseColumn.setCellValueFactory(new PropertyValueFactory<>("this"));
+
+    // // Add event handler to the purchase column
+    // purchaseColumn.setCellFactory(column -> {
+    // return new TableCell<Weapon, Weapon>() {
+    // final Button purchaseButton = new Button("Purchase");
+
+    // {
+    // purchaseButton.setOnAction(new EventHandler<ActionEvent>() {
+    // @Override
+    // public void handle(ActionEvent event) {
+    // Weapon weapon = getTableView().getItems().get(getIndex());
+    // // Perform action with the details of the selected row
+    // // TODO: Add your action here
+    // }
+    // });
+    // }
+
+    // @Override
+    // protected void updateItem(Weapon weapon, boolean empty) {
+    // super.updateItem(weapon, empty);
+    // if (weapon == null || empty) {
+    // setGraphic(null);
+    // } else {
+    // setGraphic(purchaseButton);
+    // }
+    // }
+    // };
+    // });
+
+    // tableView.getColumns().addAll(nameColumn, damageColumn, costColumn,
+    // purchaseColumn);
+    // gridPane.add(tableView, 0, 0);
+    // borderPane.setCenter(gridPane);
+    // root.getChildren().addAll(background, borderPane);
+    // }
 
     public static void main(String[] args) {
         launch();

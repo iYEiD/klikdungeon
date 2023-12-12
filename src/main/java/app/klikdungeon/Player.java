@@ -5,7 +5,8 @@ public class Player {
     private String playerName;
     private int playerLevel;
     private int gold;
-    public Inventory inventory;
+    private Inventory inventory;
+    private int damageStat = 10;
 
     public Player(int playerID, String playerName, int playerLevel, int gold) {
         this.playerID = playerID;
@@ -45,5 +46,29 @@ public class Player {
 
     public void setGold(int gold) {
         this.gold = gold;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
+    }
+
+    public int getPlayerDamage() {
+        return damageStat;
+    }
+
+    public void setPlayerDamage(int damageStat) {
+        this.damageStat = damageStat;
+    }
+
+    public void buffPlayer() {
+        int totalDamage = 0;
+        for (Weapon weapon : inventory.getWeapons()) {
+            totalDamage += weapon.getWeaponDamage();
+        }
+        this.damageStat = totalDamage + 10; // 10 base damage
     }
 }

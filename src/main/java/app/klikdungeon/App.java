@@ -3,14 +3,12 @@ package app.klikdungeon;
 import java.io.File;
 import java.io.IOException;
 
-import javafx.scene.paint.Color;
-
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
+import javafx.scene.control.TableCell;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -20,7 +18,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -31,11 +28,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.effect.DropShadow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 
 public class App extends Application {
     static private DatabaseManager db = new DatabaseManager();
@@ -201,7 +195,7 @@ public class App extends Application {
 
         monsterView.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
 
-            monster.setMonsterHealth(monster.getMonsterHealth() - 10);
+            monster.setMonsterHealth(monster.getMonsterHealth() - player.getPlayerDamage());
             monsterName.setText(
                     monster.getMonsterName() + " : " + monster.getMonsterHealth());
             if (monster.getMonsterHealth() <= 0) {
@@ -349,8 +343,42 @@ public class App extends Application {
         damageColumn.setCellValueFactory(new PropertyValueFactory<>("weaponDamage"));
         TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost");
         costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
-        TableColumn<Weapon, Integer> purchaseColumn = new TableColumn<>("Action");
-        purchaseColumn.setCellValueFactory(new PropertyValueFactory<>("gold"));
+        TableColumn<Weapon, Void> purchaseColumn = new TableColumn<>("Purchase");
+        purchaseColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button purchaseButton = new Button("Buy Weapon");
+
+            {
+                // Define the action to be performed when the button is clicked
+                purchaseButton.setOnAction(event -> {
+                    Weapon weapon = getTableView().getItems().get(getIndex());
+                    // You can perform actions on the selected weapon here
+                    System.out.println("Purchase weapon Attempt: " + weapon.getWeaponName());
+                    // Add your logic here to handle the purchase action
+                    if (player.getGold() >= weapon.getCost()) {
+                        player.setGold(player.getGold() - weapon.getCost());
+                        player.getInventory().addWeapon(weapon);
+                        player.buffPlayer();
+                        db.saveGame(player);
+                        // update database
+                        System.out.println("Weapon purchased!");
+                        displayShop(root, player, menuBar);
+                    } else {
+                        System.out.println("Not enough gold!");
+
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(purchaseButton);
+                }
+            }
+        });
 
         tableView.getColumns().addAll(nameColumn, damageColumn, costColumn, purchaseColumn);
         // Set the columns to the same size
@@ -368,70 +396,6 @@ public class App extends Application {
         borderPane.setCenter(shopBox);
         root.getChildren().addAll(background, borderPane);
     }
-    //
-
-    // }
-    // private void displayShop(StackPane root, Player player, MenuBar menuBar) {
-    // root.getChildren().clear();
-    // Pane background = new Pane();
-    // Image image = new
-    // Image("https://www.gamepur.com/wp-content/uploads/2022/12/Dark-and-Darker-loot.jpg?w=1200");
-    // ImageView imageView = new ImageView(image);
-    // imageView.setFitHeight(700);
-    // imageView.setFitWidth(900);
-    // background.getChildren().add(imageView);
-    // BorderPane borderPane = new BorderPane();
-    // borderPane.setTop(menuBar);
-
-    // GridPane gridPane = new GridPane();
-    // gridPane.setAlignment(Pos.CENTER);
-    // gridPane.setHgap(10);
-    // gridPane.setVgap(10);
-
-    // TableView<Weapon> tableView = new TableView<>();
-    // TableColumn<Weapon, String> nameColumn = new TableColumn<>("Name");
-    // nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-    // TableColumn<Weapon, Integer> damageColumn = new TableColumn<>("Damage");
-    // damageColumn.setCellValueFactory(new PropertyValueFactory<>("damage"));
-    // TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost");
-    // costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
-    // TableColumn<Weapon, Weapon> purchaseColumn = new TableColumn<>("Purchase");
-    // purchaseColumn.setCellValueFactory(new PropertyValueFactory<>("this"));
-
-    // // Add event handler to the purchase column
-    // purchaseColumn.setCellFactory(column -> {
-    // return new TableCell<Weapon, Weapon>() {
-    // final Button purchaseButton = new Button("Purchase");
-
-    // {
-    // purchaseButton.setOnAction(new EventHandler<ActionEvent>() {
-    // @Override
-    // public void handle(ActionEvent event) {
-    // Weapon weapon = getTableView().getItems().get(getIndex());
-    // // Perform action with the details of the selected row
-    // // TODO: Add your action here
-    // }
-    // });
-    // }
-
-    // @Override
-    // protected void updateItem(Weapon weapon, boolean empty) {
-    // super.updateItem(weapon, empty);
-    // if (weapon == null || empty) {
-    // setGraphic(null);
-    // } else {
-    // setGraphic(purchaseButton);
-    // }
-    // }
-    // };
-    // });
-
-    // tableView.getColumns().addAll(nameColumn, damageColumn, costColumn,
-    // purchaseColumn);
-    // gridPane.add(tableView, 0, 0);
-    // borderPane.setCenter(gridPane);
-    // root.getChildren().addAll(background, borderPane);
-    // }
 
     public static void main(String[] args) {
         launch();

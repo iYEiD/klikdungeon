@@ -252,4 +252,34 @@ public class DatabaseManager {
 
         return inventory;
     }
+
+    public void removeWeapon(Player player, Weapon weapon) {
+        String query = "DELETE FROM inventory WHERE idplayer = ? AND idweapon = ? LIMIT 1";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, player.getPlayerID());
+            preparedStatement.setInt(2, weapon.getWeaponID());
+            preparedStatement.executeUpdate();
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addWeapon(Player player, Weapon weapon) {
+        String query = "INSERT INTO inventory (idplayer, idweapon) VALUES (?, ?)";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, player.getPlayerID());
+            preparedStatement.setInt(2, weapon.getWeaponID());
+            preparedStatement.executeUpdate();
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -146,7 +146,8 @@ public class App extends Application {
         inventoryMenu.setStyle("-fx-background-color: #CCCC00;-fx-font-style: italic; -fx-font-weight: bold;");
         inventoryItem.setOnAction(e -> {
             System.out.println("Inventory clicked!");
-            // displayInventory(root, player);
+            displayInventory(root, player, menuBar);
+
         });
 
         Menu shopMenu = new Menu("Shop");
@@ -357,7 +358,7 @@ public class App extends Application {
                     if (player.getGold() >= weapon.getCost()) {
                         player.setGold(player.getGold() - weapon.getCost());
                         player.getInventory().addWeapon(weapon);
-                        player.buffPlayer();
+                        db.addWeapon(player, weapon);
                         db.saveGame(player);
                         // update database
                         System.out.println("Weapon purchased!");
@@ -390,6 +391,83 @@ public class App extends Application {
 
         ObservableList<Weapon> weapons = FXCollections.observableArrayList();
         weapons.addAll(db.getWeapons());
+
+        tableView.setItems(weapons);
+        shopBox.getChildren().add(tableView);
+        borderPane.setCenter(shopBox);
+        root.getChildren().addAll(background, borderPane);
+    }
+
+    public void displayInventory(StackPane root, Player player, MenuBar menuBar) {
+        root.getChildren().clear();
+        Pane background = new Pane();
+        Image image = new Image(
+                "https://i.pinimg.com/736x/cd/01/ca/cd01cafef69c16afe07f05c4a127e776.jpg");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(700);
+        imageView.setFitWidth(900);
+        background.getChildren().add(imageView);
+        BorderPane borderPane = new BorderPane();
+        borderPane.setTop(menuBar);
+
+        VBox shopBox = new VBox();
+        shopBox.setAlignment(Pos.CENTER);
+        Label shopLabel = new Label("Your Inventory");
+        shopLabel.setStyle(
+                "-fx-font-size: 25px; -fx-text-fill: #CCCC00; -fx-font-weight: bold;");
+        shopBox.getChildren().add(shopLabel);
+
+        TableView<Weapon> tableView = new TableView<>();
+        TableColumn<Weapon, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("weaponName"));
+        TableColumn<Weapon, Integer> damageColumn = new TableColumn<>("Damage");
+        damageColumn.setCellValueFactory(new PropertyValueFactory<>("weaponDamage"));
+        TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost(Half will be returned)");
+        costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
+        TableColumn<Weapon, Void> purchaseColumn = new TableColumn<>("Sell");
+        purchaseColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button purchaseButton = new Button("Sell Weapon");
+
+            {
+                // Define the action to be performed when the button is clicked
+                purchaseButton.setOnAction(event -> {
+                    Weapon weapon = getTableView().getItems().get(getIndex());
+                    // You can perform actions on the selected weapon here
+                    System.out.println("Purchase weapon Attempt: " + weapon.getWeaponName());
+                    // Add your logic here to handle the sell action
+                    player.setGold(player.getGold() + weapon.getCost() / 2);
+                    player.getInventory().removeWeapon(weapon);
+                    System.out.println("Weapon SOLD!");
+                    db.removeWeapon(player, weapon);
+                    player.setInventory(db.getInventory(player));
+                    db.saveGame(player);
+
+                    displayInventory(root, player, menuBar);
+
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(purchaseButton);
+                }
+            }
+        });
+
+        tableView.getColumns().addAll(nameColumn, damageColumn, costColumn, purchaseColumn);
+        // Set the columns to the same size
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        nameColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        damageColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        costColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+        purchaseColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // 25% width
+
+        ObservableList<Weapon> weapons = FXCollections.observableArrayList();
+        weapons.addAll(db.getInventory(player).getWeapons());
 
         tableView.setItems(weapons);
         shopBox.getChildren().add(tableView);

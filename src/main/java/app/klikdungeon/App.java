@@ -120,7 +120,7 @@ public class App extends Application {
 
     private void playGame(StackPane root, Player player) {
         root.getChildren().clear();
-
+        player.buffPlayer();
         Pane background = new Pane();
         Image image = new Image(
                 "https://oldschool.runescape.wiki/images/thumb/Elven_rabbit_cave.png/1200px-Elven_rabbit_cave.png?180f1");

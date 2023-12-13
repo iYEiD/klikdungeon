@@ -107,7 +107,10 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        if (player != null) {
+            System.out.println("setting inventory");
+            player.setInventory(getInventory(player));
+        }
         return player;
     }
 
@@ -214,5 +217,39 @@ public class DatabaseManager {
         }
 
         return weapons;
+    }
+
+    public Inventory getInventory(Player player) {
+        Inventory inventory = new Inventory();
+        List<Weapon> weapons = new ArrayList<>();
+        String query = "SELECT weapon.* FROM weapon " +
+                "JOIN inventory ON weapon.idweapon = inventory.idweapon " +
+                "WHERE inventory.idplayer = ?";
+
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, player.getPlayerID());
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                int weaponId = resultSet.getInt("idweapon");
+                String weaponName = resultSet.getString("name");
+                int weaponDamage = resultSet.getInt("damage");
+                int weaponCosts = resultSet.getInt("cost");
+                System.out.println("Weapon: " + weaponName + " " + weaponDamage + " " + weaponCosts);
+                // Assuming Weapon class has a constructor that takes these parameters
+                Weapon weapon = new Weapon(weaponId, weaponName, weaponDamage, weaponCosts);
+                weapons.add(weapon);
+            }
+
+            inventory.setWeapons(weapons);
+
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return inventory;
     }
 }

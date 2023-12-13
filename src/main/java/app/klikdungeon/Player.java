@@ -14,6 +14,7 @@ public class Player {
         this.playerLevel = playerLevel;
         this.gold = gold;
         this.inventory = new Inventory();
+
     }
 
     public int getPlayerID() {
@@ -66,9 +67,11 @@ public class Player {
 
     public void buffPlayer() {
         int totalDamage = 0;
-        for (Weapon weapon : inventory.getWeapons()) {
+        for (Weapon weapon : this.inventory.getWeapons()) {
             totalDamage += weapon.getWeaponDamage();
+            System.out.println("Applied Buff damage: " + weapon.getWeaponDamage());
         }
         this.damageStat = totalDamage + 10; // 10 base damage
+        System.out.println("Player damage: " + damageStat);
     }
 }

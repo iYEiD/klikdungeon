@@ -63,21 +63,35 @@ public class DatabaseManager {
     }
 
     public void addPlayer(String name, String password) {
-        String query = "INSERT INTO player (name, password, level, gold) VALUES (?, ?, 1, 0)";
+        String checkQuery = "SELECT * FROM player WHERE name = ?";
+        String insertQuery = "INSERT INTO player (name, password, level, gold) VALUES (?, ?, 1, 0)";
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, password);
+            // Check if the name is already taken
+            PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+            checkStatement.setString(1, name);
+            ResultSet checkResult = checkStatement.executeQuery();
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            if (checkResult.next()) {
+                System.out.println("Name is already taken: " + name);
+                return; // Exit the method if the name is already taken
+            }
+
+            // Insert the player into the database
+            PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
+            insertStatement.setString(1, name);
+            insertStatement.setString(2, password);
+
+            int rowsAffected = insertStatement.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Player added successfully: " + name);
             } else {
                 System.out.println("Failed to add player: " + name);
             }
 
-            preparedStatement.close();
+            checkResult.close();
+            checkStatement.close();
+            insertStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -278,6 +292,67 @@ public class DatabaseManager {
             preparedStatement.executeUpdate();
 
             preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteWeapon(Weapon weapon) {
+        String deleteWeaponQuery = "DELETE FROM weapon WHERE idweapon = ?";
+        String deleteInventoryQuery = "DELETE FROM inventory WHERE idweapon = ?";
+
+        try {
+            // Get player IDs from inventory table
+            String getPlayerIDsQuery = "SELECT idplayer FROM inventory WHERE idweapon = ?";
+            PreparedStatement getPlayerIDsStatement = connection.prepareStatement(getPlayerIDsQuery);
+            getPlayerIDsStatement.setInt(1, weapon.getWeaponID());
+            ResultSet playerIDsResult = getPlayerIDsStatement.executeQuery();
+
+            List<Integer> playerIDs = new ArrayList<>();
+            while (playerIDsResult.next()) {
+                playerIDs.add(playerIDsResult.getInt("idplayer"));
+            }
+
+            getPlayerIDsStatement.close();
+            playerIDsResult.close();
+
+            // Delete weapon from weapon table
+            PreparedStatement deleteWeaponStatement = connection.prepareStatement(deleteWeaponQuery);
+            deleteWeaponStatement.setInt(1, weapon.getWeaponID());
+            deleteWeaponStatement.executeUpdate();
+            deleteWeaponStatement.close();
+
+            // Delete weapon from inventory table
+            PreparedStatement deleteInventoryStatement = connection.prepareStatement(deleteInventoryQuery);
+            deleteInventoryStatement.setInt(1, weapon.getWeaponID());
+            deleteInventoryStatement.executeUpdate();
+            deleteInventoryStatement.close();
+
+            // Update player's gold
+            String updateGoldQuery = "UPDATE player SET gold = gold + ? WHERE playerID = ?";
+            PreparedStatement updateGoldStatement = connection.prepareStatement(updateGoldQuery);
+            for (int playerID : playerIDs) {
+                updateGoldStatement.setInt(1, weapon.getCost());
+                updateGoldStatement.setInt(2, playerID);
+                updateGoldStatement.executeUpdate();
+            }
+            updateGoldStatement.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createWeapon(String name, int damage, int cost) {
+        String insertWeaponQuery = "INSERT INTO weapon (name, damage, cost) VALUES (?, ?, ?)";
+
+        try {
+            PreparedStatement insertWeaponStatement = connection.prepareStatement(insertWeaponQuery);
+            insertWeaponStatement.setString(1, name);
+            insertWeaponStatement.setInt(2, damage);
+            insertWeaponStatement.setInt(3, cost);
+            insertWeaponStatement.executeUpdate();
+            insertWeaponStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

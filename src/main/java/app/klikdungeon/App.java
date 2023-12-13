@@ -88,7 +88,12 @@ public class App extends Application {
             loginButton.setStyle("-fx-background-color: #CCCC00;");
 
             loginButton.setOnAction(e -> {
-                if (db.authenticate(username.getText(), password.getText())) {
+                if ("admin".equals(username.getText()) && "admin".equals(password.getText())) {
+                    clip.stop();
+                    clip.close();
+                    System.out.println("Admin online");
+                    adminPanel(root);
+                } else if (db.authenticate(username.getText(), password.getText())) {
                     clip.stop();
                     clip.close();
 
@@ -260,13 +265,31 @@ public class App extends Application {
         password.setStyle(
                 "-fx-background-color: transparent; -fx-border-color: black; -fx-text-fill: black; -fx-border-radius: 10;");
 
-        Button registerButton = new Button("Create");
-        registerButton.setOnAction(e -> {
-            db.addPlayer(username.getText(), password.getText());
+        HBox buttonBox = new HBox();
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setSpacing(10);
+
+        Button backButton = new Button("Back");
+        backButton.setStyle("-fx-background-color: #CCCC00;");
+        backButton.setOnAction(e -> {
             startUp(root);
         });
-        registerButton.setStyle("-fx-background-color: #CCCC00;");
-        loginBox.getChildren().addAll(label, username, password, registerButton);
+
+        Button createAccountButton = new Button("Create Account");
+        createAccountButton.setStyle("-fx-background-color: #CCCC00;");
+        createAccountButton.setOnAction(e -> {
+            if (username.getText().equals("") || password.getText().equals("")) {
+                System.out.println("One of the fields is empty");
+                return;
+            } else {
+                db.addPlayer(username.getText(), password.getText());
+            }
+            startUp(root);
+        });
+
+        buttonBox.getChildren().addAll(backButton, createAccountButton);
+
+        loginBox.getChildren().addAll(label, username, password, buttonBox);
         root.getChildren().addAll(background, loginBox);
 
     }
@@ -473,6 +496,123 @@ public class App extends Application {
         shopBox.getChildren().add(tableView);
         borderPane.setCenter(shopBox);
         root.getChildren().addAll(background, borderPane);
+    }
+
+    public void adminPanel(StackPane root) {
+        root.getChildren().clear();
+        Pane background = new Pane();
+        Image image = new Image(
+                "https://img.freepik.com/premium-vector/cave-with-light-hole-ground-game-background-illustration-vector-forest_597121-571.jpg");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(700);
+        imageView.setFitWidth(900);
+        background.getChildren().add(imageView);
+        // I will have a user input for the weapon name, damage, cost
+        // and on the right a tableview of all the weapons
+        // and a button to add the weapon to the database
+        BorderPane borderPane = new BorderPane();
+        VBox addWeaponBox = new VBox();
+        addWeaponBox.setAlignment(Pos.CENTER);
+        Label addWeaponLabel = new Label("Add Weapon");
+        addWeaponLabel.setStyle(
+                "-fx-font-size: 25px; -fx-text-fill: #CCCC00; -fx-font-weight: bold;");
+        addWeaponBox.getChildren().add(addWeaponLabel);
+
+        TextField weaponName = new TextField();
+        weaponName.setPromptText("Weapon Name");
+        weaponName.setStyle(
+                "-fx-background-color: transparent; -fx-border-color: black; -fx-text-fill: yellow; -fx-border-radius: 10;");
+        TextField weaponDamage = new TextField();
+        weaponDamage.setPromptText("Weapon Damage");
+        weaponDamage.setStyle(
+                "-fx-background-color: transparent; -fx-border-color: black; -fx-text-fill: yellow; -fx-border-radius: 10;");
+        TextField weaponCost = new TextField();
+        weaponCost.setPromptText("Weapon Cost");
+        weaponCost.setStyle(
+                "-fx-background-color: transparent; -fx-border-color: black; -fx-text-fill: yellow; -fx-border-radius: 10;");
+        Button addWeaponButton = new Button("Add Weapon");
+        addWeaponButton.setOnAction(e -> {
+            if (weaponName.getText().equals("") || weaponDamage.getText().equals("")
+                    || weaponCost.getText().equals("")) {
+                System.out.println("One of the fields is empty");
+                return;
+            } else {
+                db.createWeapon(weaponName.getText(), Integer.parseInt(weaponDamage.getText()),
+                        Integer.parseInt(weaponCost.getText()));
+            }
+            adminPanel(root);
+        });
+        addWeaponButton.setStyle("-fx-background-color: #CCCC00;");
+        addWeaponBox.getChildren().addAll(weaponName, weaponDamage, weaponCost, addWeaponButton);
+        borderPane.setLeft(addWeaponBox);
+
+        // just a tableview of all the weapons
+        VBox weaponBox = new VBox();
+        weaponBox.setAlignment(Pos.CENTER);
+        Label weaponLabel = new Label("All Weapons");
+        weaponLabel.setStyle(
+                "-fx-font-size: 25px; -fx-text-fill: #CCCC00; -fx-font-weight: bold;");
+        weaponBox.getChildren().add(weaponLabel);
+
+        TableView<Weapon> tableView = new TableView<>();
+        TableColumn<Weapon, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("weaponName"));
+        TableColumn<Weapon, Integer> damageColumn = new TableColumn<>("Damage");
+        damageColumn.setCellValueFactory(new PropertyValueFactory<>("weaponDamage"));
+        TableColumn<Weapon, Integer> costColumn = new TableColumn<>("Cost");
+        costColumn.setCellValueFactory(new PropertyValueFactory<>("cost"));
+        TableColumn<Weapon, Void> deleteColumn = new TableColumn<>("Delete");
+        deleteColumn.setCellFactory(param -> new TableCell<>() {
+            private final Button deleteButton = new Button("Delete Weapon");
+
+            {
+                // Define the action to be performed when the button is clicked
+                deleteButton.setOnAction(event -> {
+                    Weapon weapon = getTableView().getItems().get(getIndex());
+                    // You can perform actions on the selected weapon here
+                    System.out.println("Delete weapon Attempt: " + weapon.getWeaponName());
+                    // Add your logic here to handle the delete action
+                    db.deleteWeapon(weapon);
+                    System.out.println("Weapon deleted!");
+                    adminPanel(root);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(deleteButton);
+                }
+            }
+        });
+        tableView.getColumns().addAll(nameColumn, damageColumn, costColumn, deleteColumn);
+        // Set the columns to the same size
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        nameColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // % width
+        damageColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // % width
+        costColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // %
+        deleteColumn.setMaxWidth(1f * Integer.MAX_VALUE * 25); // % width
+        ObservableList<Weapon> weapons = FXCollections.observableArrayList();
+        weapons.addAll(db.getWeapons());
+
+        tableView.setItems(weapons);
+        weaponBox.getChildren().add(tableView);
+        borderPane.setCenter(weaponBox);
+
+        // Signout button
+        Button signoutButton = new Button("Sign Out");
+        signoutButton.setOnAction(e -> {
+            System.out.println("Signing out...");
+            startUp(root);
+
+        });
+        signoutButton.setStyle("-fx-background-color: #CCCC00;");
+        borderPane.setBottom(signoutButton);
+        root.getChildren().addAll(background, borderPane);
+
     }
 
     public static void main(String[] args) {
